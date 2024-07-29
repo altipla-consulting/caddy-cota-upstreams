@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	LabelEnable       = "com.caddyserver.http.enable"
-	LabelNetwork      = "com.caddyserver.http.network"
-	LabelUpstreamPort = "com.caddyserver.http.upstream.port"
+	LabelEnable       = "cota.enable"
+	LabelNetwork      = "cota.network"
+	LabelUpstreamPort = "cota.upstream.port"
 )
 
 func init() {

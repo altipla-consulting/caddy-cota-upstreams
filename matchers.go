@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	LabelDomains = "cota.domains"
+	LabelHosts = "cota.hosts"
 )
 
 var producers = map[string]func(string) (caddyhttp.RequestMatcher, error){
-	LabelDomains: func(value string) (caddyhttp.RequestMatcher, error) {
+	LabelHosts: func(value string) (caddyhttp.RequestMatcher, error) {
 		return caddyhttp.MatchHost(strings.Split(value, ",")), nil
 	},
 }
