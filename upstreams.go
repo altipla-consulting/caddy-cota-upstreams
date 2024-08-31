@@ -59,6 +59,7 @@ func (Upstreams) CaddyModule() caddy.ModuleInfo {
 }
 
 func (u *Upstreams) provisionCandidates(ctx caddy.Context, cli *client.Client) error {
+	ctx.Logger().Debug("list container candidates")
 	containers, err := cli.ContainerList(ctx, container.ListOptions{Filters: defaultFilters})
 	if err != nil {
 		return fmt.Errorf("listing docker containers: %w", err)
@@ -185,13 +186,10 @@ func (u *Upstreams) keepUpdated(ctx caddy.Context, cli *client.Client) {
 }
 
 func (u *Upstreams) provision(ctx caddy.Context, cli *client.Client) error {
-	err := u.provisionCandidates(ctx, cli)
-	if err != nil {
+	if err := u.provisionCandidates(ctx, cli); err != nil {
 		return err
 	}
-
 	go u.keepUpdated(ctx, cli)
-
 	return nil
 }
 
