@@ -74,17 +74,13 @@ func (u *Upstreams) provisionCandidates(ctx caddy.Context, cli *client.Client) e
 		// Build upstream.
 		port, ok := c.Labels[LabelUpstreamPort]
 		if !ok {
-			ctx.Logger().Error("unable to get port from container labels",
-				zap.String("container_id", c.ID),
-			)
+			ctx.Logger().Error("unable to get port from container labels", zap.String("container_id", c.ID))
 			continue
 		}
 
 		// Choose network to connect.
 		if len(c.NetworkSettings.Networks) == 0 {
-			ctx.Logger().Error("unable to get ip address from container networks",
-				zap.String("container_id", c.ID),
-			)
+			ctx.Logger().Error("unable to get ip address from container networks", zap.String("container_id", c.ID))
 			continue
 		}
 
@@ -97,6 +93,14 @@ func (u *Upstreams) provisionCandidates(ctx caddy.Context, cli *client.Client) e
 					matchers: matchers,
 					upstream: &reverseproxy.Upstream{Dial: address},
 				})
+
+				ctx.Logger().Debug("evaluate candidate",
+					zap.String("container_id", c.ID),
+					zap.String("network", network),
+					zap.String("address", address),
+					zap.Int("matchers", len(matchers)),
+				)
+
 				break
 			}
 			continue
@@ -108,20 +112,14 @@ func (u *Upstreams) provisionCandidates(ctx caddy.Context, cli *client.Client) e
 			const projectLabel = "com.docker.compose.project"
 			project, ok := c.Labels[projectLabel]
 			if !ok {
-				ctx.Logger().Error("unable to get network settings from container",
-					zap.String("container_id", c.ID),
-					zap.String("network", network),
-				)
+				ctx.Logger().Error("unable to get network settings from container", zap.String("container_id", c.ID), zap.String("network", network))
 				continue
 			}
 
 			network = fmt.Sprintf("%s_%s", project, network)
 			settings, ok = c.NetworkSettings.Networks[network]
 			if !ok {
-				ctx.Logger().Error("unable to get network settings from container",
-					zap.String("container_id", c.ID),
-					zap.String("network", network),
-				)
+				ctx.Logger().Error("unable to get network settings from container", zap.String("container_id", c.ID), zap.String("network", network))
 				continue
 			}
 		}
