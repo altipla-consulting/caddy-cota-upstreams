@@ -64,8 +64,8 @@ func (u *Upstreams) provisionCandidates(ctx caddy.Context, cli *client.Client) e
 		return fmt.Errorf("listing docker containers: %w", err)
 	}
 
+	ctx.Logger().Debug("provision candidates", zap.Int("count", len(containers)))
 	updated := make([]candidate, 0, len(containers))
-
 	for _, c := range containers {
 		// Build matchers.
 		matchers := buildMatchers(ctx, c.Labels)
@@ -130,6 +130,13 @@ func (u *Upstreams) provisionCandidates(ctx caddy.Context, cli *client.Client) e
 			matchers: matchers,
 			upstream: &reverseproxy.Upstream{Dial: address},
 		})
+
+		ctx.Logger().Debug("evaluate candidate",
+			zap.String("container_id", c.ID),
+			zap.String("network", network),
+			zap.String("address", address),
+			zap.Int("matchers", len(matchers)),
+		)
 	}
 
 	candidatesMu.Lock()
