@@ -37,8 +37,9 @@ type candidate struct {
 }
 
 var (
-	candidates   []candidate
-	candidatesMu sync.RWMutex
+	provisionOnce sync.Once
+	candidates    []candidate
+	candidatesMu  sync.RWMutex
 )
 
 var defaultFilters = filters.NewArgs(
@@ -183,14 +184,6 @@ func (u *Upstreams) keepUpdated(ctx caddy.Context, cli *client.Client) {
 	}
 }
 
-func (u *Upstreams) provision(ctx caddy.Context, cli *client.Client) error {
-	if err := u.provisionCandidates(ctx, cli); err != nil {
-		return err
-	}
-	go u.keepUpdated(ctx, cli)
-	return nil
-}
-
 func (u *Upstreams) Provision(ctx caddy.Context) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -203,7 +196,15 @@ func (u *Upstreams) Provision(ctx caddy.Context) error {
 	}
 	ctx.Logger().Info("connected docker server", zap.String("api_version", ping.APIVersion))
 
-	return u.provision(ctx, cli)
+	if err := u.provisionCandidates(ctx, cli); err != nil {
+		return err
+	}
+
+	provisionOnce.Do(func() {
+		go u.keepUpdated(ctx, cli)
+	})
+
+	return nil
 }
 
 func (u *Upstreams) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error) {
